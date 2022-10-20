@@ -22,6 +22,7 @@ app.get("/city", async(req,res)=>{
         return res.status(201).json(results)
     } catch (e) {
         console.error(e);
+        return res.sendStatus(500);
     } finally {
         await client.close();
     }
