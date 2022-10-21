@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import { MainPagination } from "./components/Mainpagination";
+import Button from "react-bootstrap/Button";
 
 const URL = "http://localhost:3007/api/city";
 const LIMIT = 18;
@@ -13,6 +14,12 @@ export type City = {
 	distance: number;
 
 }
+export type Columns = "title" | "amount" | "distance";
+
+export type Sort ={
+	sort: Columns;
+	value: boolean;
+};
 
 export interface Page {
 	data: City[];
@@ -26,28 +33,31 @@ export interface Page {
 function App() {
 	const [page, setPage] = useState<number>(1);
 	const [data, setData] = useState<Page | null>(null);
-	const [isLoading, setIsloading] = useState<boolean>(false);
+	const [currentSort, setCurrentSort] = useState<Sort>({sort:"title", value: true});
 
 	useEffect(() => {
 		(async () => {
 			try {
-				setIsloading(true);
-				const data = await fetch(`${URL}?page=${page-1}&limit=${LIMIT}`);
+				const data = await fetch(`${URL}?page=${page-1}&limit=${LIMIT}&sort=${currentSort.sort}&value=${currentSort.value ? 1 : -1}`);
 				const result = await data.json();
 				setData(result.data);
 				console.log(result);
-				setIsloading(false);
 			} catch(e){
 				console.log(e);
-			} finally{
-				setIsloading(false);
 			}
 		}
 		)();
-	}, [page]);
+	}, [page, currentSort]);
 
-	const changePage = async(value: number)=>{
+	const changePage = (value: number): void=>{
 		setPage(value);
+	};
+
+	const changeSort=(column: Columns): void=>{
+		setCurrentSort(prev=>{
+			if(prev.sort === column) return {...prev, value:!prev.value };
+			return {sort: column, value: true};
+		});
 	};
 
 	return (
@@ -55,13 +65,13 @@ function App() {
 			<h1 className="m-3">
 				WelbeX
 			</h1>
-			{!isLoading ? <Table striped bordered hover>
+			<Table striped bordered hover>
 				<thead>
 					<tr>
-						<th>Дата</th>
-						<th>Название</th>
-						<th>Количество</th>
-						<th>Расстояние</th>
+						<th className="col-3">Дата</th>
+						<th className="col-3">Название<Button variant="outline-primary rounded-circle ms-3" onClick={()=>changeSort("title")}>↑↓</Button></th>
+						<th className="col-3">Количество<Button variant="outline-primary rounded-circle ms-3" onClick={()=>changeSort("amount")}>↑↓</Button></th>
+						<th className="col-3">Расстояние<Button variant="outline-primary rounded-circle ms-3" onClick={()=>changeSort("distance")}>↑↓</Button></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -74,7 +84,7 @@ function App() {
 						</tr>);
 					})}
 				</tbody>
-			</Table>: <h1>loading</h1>}
+			</Table>
 			<MainPagination
 				page={page}
 				total={data?.totalCities || 0}

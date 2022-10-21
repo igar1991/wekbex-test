@@ -15,6 +15,10 @@ async function getPage(req, res, options) {
     try {
         await client.connect();
         const result = {};
+        const sortOptions = {};
+        if(req.query.sort){
+          sortOptions[req.query.sort] = Number(req.query.value)
+        }        
         const pageNumber = parseInt(req.query.page) || 0;
         const limit = parseInt(req.query.limit) || 12;
         let startIndex = pageNumber * limit;
@@ -29,7 +33,7 @@ async function getPage(req, res, options) {
           result.next = pageNumber + 1
         }
         result.data = await client.db("welbex").collection("welbex").find(options)
-        .sort({"title": 1})
+        .sort(sortOptions)
         .skip(startIndex)
         .limit(limit)
         .toArray()
