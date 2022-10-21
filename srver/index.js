@@ -21,17 +21,12 @@ async function getPage(req, res, options) {
         const endIndex = (pageNumber + 1) * limit;
         const count = await (await client.db("welbex").collection("welbex").find(options).toArray()).length;
         result.totalCities = count;
+        result.totalPages = Math.ceil(count/limit);
         if (startIndex > 0) {
-          result.previous = {
-            pageNumber: pageNumber - 1,
-            limit: limit,
-          };
+          result.previous = pageNumber - 1
         }
         if (endIndex < count) {
-          result.next = {
-            pageNumber: pageNumber + 1,
-            limit: limit,
-          };
+          result.next = pageNumber + 1
         }
         result.data = await client.db("welbex").collection("welbex").find(options)
         .sort({"title": 1})
