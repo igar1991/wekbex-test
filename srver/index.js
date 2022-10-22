@@ -45,6 +45,7 @@ async function getPage(req, res, optionsFilter, optionsSort) {
 }
 
 app.get("/api/city", async(req,res)=>{
+    //Create options for filter and sort
     const optionsFilter = {};
     const valueFilter = decodeURI(req.query.valuefilter);
     optionsFilter[req.query.filter] = {[req.query.condition]: req.query.filter==='title'?valueFilter:Number(valueFilter)}
@@ -53,6 +54,7 @@ app.get("/api/city", async(req,res)=>{
     }
     const optionsSort = {};
     optionsSort[req.query.sort] = Number(req.query.value)
+    
     await getPage(req,res, optionsFilter, optionsSort)
 });
 
