@@ -1,39 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { MainPagination } from "./components/Mainpagination";
 import { Button, Table, Form } from "react-bootstrap";
-
-const URL = "http://localhost:3007/api/city";
-const LIMIT = 15;
-
-export type City = {
-	_id: string;
-	title: string;
-	date: string;
-	amount: number;
-	distance: number;
-
-}
-export type Columns = "title" | "amount" | "distance";
-export type Condition = "$regex" | "$eq" | "$gt" | "$lt";
-
-export interface Sort {
-	sort: Columns;
-	value: boolean;
-}
-
-export interface Page {
-	data: City[];
-	next?: number;
-	previous?: number;
-	rowsPerPage: number;
-	totalCities: number;
-	totalPages: number;
-}
-
-export interface Filter {
-	column: Columns;
-	condition: Condition;
-}
+import { MainPagination } from "./components/mainPagination";
+import { LIMIT, URL } from "./constans/constans";
+import { Filter, Page, Sort, Columns, Condition } from "./types/types";
 
 function App() {
 	const [page, setPage] = useState<number>(1);
@@ -43,11 +12,12 @@ function App() {
 	const [valueInput, setValueInput] = useState<string>("");
 	const [isSearch, setIsSearch] = useState<boolean>(false);
 	const [isValidField, setIsValidField] = useState<boolean>(true);
+	const [isError, setIsError] = useState<boolean>(false);
 
 	useEffect(() => {
 		(async () => {
 			try {
-				
+				setIsError(false);
 				const sort = currentSort.sort;
 				const value = currentSort.value ? 1 : -1;
 				const filter = currentFilter.column;
@@ -56,9 +26,8 @@ function App() {
 				const data = await fetch(`${URL}?page=${page - 1}&limit=${LIMIT}&sort=${sort}&value=${value}&filter=${filter}&condition=${condition}&valuefilter=${valueEncode}`);
 				const result = await data.json();
 				setData(result.data);
-				console.log(result);
 			} catch (e) {
-				console.log(e);
+				setIsError(true);
 			}
 		}
 		)();
@@ -75,7 +44,7 @@ function App() {
 		});
 	};
 
-	const chooseColumn = (value: Columns) => {
+	const chooseColumn = (value: Columns): void => {
 		setCurrentFilter(prev => {
 			//validation selects
 			let currentConditional:Condition;
@@ -91,11 +60,11 @@ function App() {
 		);
 	};
 
-	const chooseCondition = (value: Condition) => {
+	const chooseCondition = (value: Condition): void => {
 		setCurrentFilter(prev => ({ ...prev, condition: value }));
 	};
 
-	const getFilterData=(filter: Filter, valueInput:string )=>{
+	const getFilterData=(filter: Filter, valueInput:string ): void=>{
 		if(filter.column!=="title" && isNaN(+valueInput)){
 			setIsValidField(false);
 			return;
@@ -103,7 +72,6 @@ function App() {
 		setPage(1);
 		setIsSearch(prev=>!prev);
 	};
-
 
 	return (
 		<div className="container">
@@ -154,6 +122,10 @@ function App() {
 					})}
 				</tbody>
 			</Table>
+			{/* If no data */}
+			{data?.data.length===0 && <h3 className="text-center text-secondary">Ничего не найдено :(</h3>}
+			{/* Error */}
+			{isError && <h3 className="text-center text-danger">Что то пошло не так :(</h3>}
 			<MainPagination
 				page={page}
 				total={data?.totalCities || 0}
