@@ -1,2 +1,2 @@
-export const URL = "http://localhost:3007/api/city";
+export const URL = "https://welbex-be.herokuapp.com/api/city";
 export const LIMIT = 15;
